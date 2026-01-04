@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0000c8">
+<title>Rejsekort</title>
+<link rel="manifest" href="manifest.json">
+<style>
+:root{--blue:#0000c8;--green:#3cb371;--red:#e60000;--bg:#f2f2f7;--grey:#8e8e93}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg)}
+.screen{display:none;min-height:100vh;background:var(--bg)}
+.top{background:linear-gradient(180deg,#1c1cff,#0000c8);padding-top:env(safe-area-inset-top)}
+.nav{height:56px;padding:0 16px;display:flex;align-items:center;justify-content:space-between}
+.nav img{height:22px}
+.user{padding:20px}
+.user b{font-size:18px;display:block}
+.user span{color:var(--grey);font-size:14px}
+.center{display:flex;justify-content:center;margin:40px 0}
+.center img{width:180px;opacity:.9}
+.fab{position:absolute;right:20px;bottom:150px;width:52px;height:52px;background:#1c1cff;color:#fff;border-radius:50%;display:flex;justify-content:center;align-items:center;font-size:22px}
+.bottom{position:fixed;bottom:0;left:0;right:0;background:#fff;padding:20px;border-radius:24px 24px 0 0;box-shadow:0 -10px 30px rgba(0,0,0,.15)}
+.track{height:64px;background:#e5e5ea;border-radius:32px;position:relative;margin-top:14px}
+.track span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:600;color:#666}
+.handle{width:56px;height:56px;background:var(--green);border-radius:28px;position:absolute;top:4px;left:4px;display:flex;justify-content:center;align-items:center;color:white;font-size:20px}
+.active{background:var(--green);margin:20px;height:64px;border-radius:32px;display:flex;align-items:center;justify-content:space-between;padding:0 8px 0 24px;color:white;font-weight:700}
+.stop{width:44px;height:44px;background:var(--red);border-radius:50%;display:flex;justify-content:center;align-items:center}
+.card{background:white;margin:16px;border-radius:24px;overflow:hidden}
+.qr{padding:40px;background:url("https://i.imgur.com/D34cWAv.png") repeat;background-size:120px;display:flex;justify-content:center;position:relative}
+.qr img{width:220px}
+.scanline{position:absolute;left:20%;right:20%;height:4px;background:rgba(0,255,0,.6);top:20%;animation:scan 2s linear infinite}
+@keyframes scan{0%{top:15%}100%{top:80%}}
+.time{background:linear-gradient(90deg,#ff4b2b,#ff416c);color:white;font-size:32px;font-weight:700;text-align:center;padding:16px}
+.blue{background:var(--blue);color:white;text-align:center;padding:10px;font-size:13px}
+.data{padding:20px}
+.row{display:flex;justify-content:space-between;padding:14px 0;border-bottom:1px solid #eee}
+.tag{background:#e5e5ea;padding:4px 10px;border-radius:6px;font-size:12px}
+.login{display:flex;flex-direction:column;justify-content:center;align-items:center;height:100vh}
+.login input{padding:14px 16px;border-radius:12px;border:1px solid #ccc;font-size:16px}
+.login button{margin-top:12px;padding:14px 20px;border-radius:20px;border:none;background:#0000c8;color:white;font-weight:600}
+</style>
+</head>
+<body>
+
+<div class="screen" id="login" style="display:block">
+  <div class="login">
+    <img src="https://i.imgur.com/n88Q87B.png" style="height:40px;margin-bottom:20px">
+    <input id="code" placeholder="Indtast engangskode">
+    <button onclick="login()">Log ind</button>
+    <small style="color:#888;margin-top:10px">Engangskode virker kun én gang</small>
+  </div>
+</div>
+
+<div class="screen" id="home">
+  <div class="top"><div class="nav">
+    <img src="https://i.imgur.com/882QxWs.png">
+    <img src="https://i.imgur.com/n88Q87B.png">
+    <img src="https://i.imgur.com/qkv0FxH.png">
+  </div></div>
+  <div class="user"><b>Aleksei Schack</b><span>Standard · Ung</span></div>
+  <div class="center"><img src="https://i.imgur.com/8oVvyhn.png"></div>
+  <div class="fab">👥</div>
+  <div class="bottom">
+    <b>Mariesmindevej/Elkærsv...</b>
+    <div style="font-size:13px;color:#8e8e93">Check ind før du stiger på</div>
+    <div class="track" id="track"><span>Check ind</span><div class="handle" id="handle">➜</div></div>
+  </div>
+</div>
+
+<div class="screen" id="active">
+  <div class="top"><div class="nav">
+    <img src="https://i.imgur.com/882QxWs.png">
+    <img src="https://i.imgur.com/n88Q87B.png">
+    <img src="https://i.imgur.com/qkv0FxH.png">
+  </div></div>
+  <div class="user"><b>Aleksei Schack</b><span>Standard · Ung</span></div>
+  <div class="center">
+    <button onclick="openTicket()" style="background:#2c2c2e;color:white;border:none;padding:14px 28px;border-radius:28px;font-weight:600">Vis billet</button>
+  </div>
+  <div class="active"><div id="timer">00.00</div><div class="stop" onclick="location.reload()">‹</div></div>
+</div>
+
+<div class="screen" id="ticket">
+  <div class="top"><div class="nav">
+    <span onclick="closeTicket()" style="color:white;font-size:30px">‹</span>
+    <img src="https://i.imgur.com/n88Q87B.png"><span></span>
+  </div></div>
+  <div class="card">
+    <div class="qr">
+      <div class="scanline"></div>
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=Rejsekort">
+    </div>
+    <div class="time" id="clock">00:00:00</div>
+    <div class="blue" id="valid">Gyldig fra</div>
+    <div class="data">
+      <div class="row"><div><small>Fra</small><br><b>Mariesmindevej</b></div><div class="tag">Standard</div></div>
+      <div class="row" style="border:none"><div><small>Rejsende</small><br><b>Aleksei Schack</b><br><small>Ung</small></div><div class="tag">Ung</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const VALID_CODES=["TEST123","ABC999"]; // eksempler
+function login(){
+  const c=document.getElementById("code").value.trim();
+  let used=JSON.parse(localStorage.getItem("usedCodes")||"[]");
+  if(VALID_CODES.includes(c)&&!used.includes(c)){
+    used.push(c);localStorage.setItem("usedCodes",JSON.stringify(used));
+    loginScreen.style.display="none";home.style.display="block";
+  }else alert("Ugyldig eller brugt kode");
+}
+
+let start,timerInt,clockInt;
+const handle=document.getElementById("handle"),track=document.getElementById("track");
+let drag=false,startX=0;
+handle.addEventListener("pointerdown",e=>{drag=true;startX=e.clientX;handle.setPointerCapture(e.pointerId);handle.style.transition="none"});
+handle.addEventListener("pointermove",e=>{if(!drag)return;let x=e.clientX-startX;let max=track.offsetWidth-handle.offsetWidth-8;if(x<0)x=0;if(x>max)x=max;handle.style.transform=`translateX(${x}px)`;if(x>max*0.95)startTrip()});
+handle.addEventListener("pointerup",reset);handle.addEventListener("pointercancel",reset);
+function reset(){if(!drag)return;drag=false;handle.style.transition=".3s";handle.style.transform="translateX(0)"}
+function startTrip(){drag=false;start=new Date();home.style.display="none";active.style.display="block";timerInt=setInterval(()=>{let d=Math.floor((new Date()-start)/1000);timer.innerText=String(Math.floor(d/60)).padStart(2,"0")+"."+String(d%60).padStart(2,"0")},1000)}
+function openTicket(){active.style.display="none";ticket.style.display="block";updateClock();clockInt=setInterval(updateClock,1000)}
+function closeTicket(){clearInterval(clockInt);ticket.style.display="none";active.style.display="block"}
+function updateClock(){const n=new Date();clock.innerText=n.toLocaleTimeString("da-DK");valid.innerText="Gyldig fra "+start.toLocaleString("da-DK")}
+if("serviceWorker"in navigator){navigator.serviceWorker.register("service-worker.js")}
+</script>
+</body>
+</html>
