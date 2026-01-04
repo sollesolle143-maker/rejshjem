@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rejsekort</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1c1cff">
+<style>
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont;background:#f2f2f7}
+.hidden{display:none}
+.nav{background:linear-gradient(180deg,#1c1cff,#0000c8);color:#fff;padding:16px;display:flex;justify-content:space-between;align-items:center}
+.screen{padding:20px}
+input{width:100%;padding:14px;font-size:16px;border-radius:12px;border:1px solid #ccc}
+button{width:100%;padding:14px;border:none;border-radius:14px;background:#1c1cff;color:#fff;font-size:16px;margin-top:10px}
+.qrbox{margin:30px auto;width:240px;height:240px;background:url('https://i.imgur.com/D34cWAv.png') repeat;background-size:120px;display:flex;align-items:center;justify-content:center;position:relative}
+.scan{position:absolute;top:0;width:100%;height:4px;background:rgba(0,255,255,.8);animation:scan 2s linear infinite}
+@keyframes scan{0%{top:0}100%{top:100%}}
+.timebar{background:linear-gradient(90deg,#ff8c00,#ff2d55);color:#fff;padding:14px;text-align:center;font-size:24px;border-radius:14px}
+</style>
+</head>
+<body>
+
+<div id="login" class="screen">
+<h2>Indtast adgangskode</h2>
+<input id="code" placeholder="Engangskode">
+<button onclick="login()">Fortsæt</button>
+<p id="err" style="color:red"></p>
+</div>
+
+<div id="app" class="hidden">
+<div class="nav">rejsekort</div>
+<div class="screen">
+<div class="qrbox">
+<img id="qr" width="180">
+<div class="scan"></div>
+</div>
+<div class="timebar" id="time"></div>
+</div>
+</div>
+
+<script>
+if ('serviceWorker' in navigator) {
+ navigator.serviceWorker.register('service-worker.js');
+}
+
+const VALID_CODES = ["TEST123","ABC999","DEMO777"];
+let used = JSON.parse(localStorage.getItem("usedCodes")||"[]");
+
+function login(){
+ const c=document.getElementById("code").value.trim();
+ if(!VALID_CODES.includes(c) || used.includes(c)){
+  document.getElementById("err").innerText="Ugyldig eller brugt kode";
+  return;
+ }
+ used.push(c);
+ localStorage.setItem("usedCodes",JSON.stringify(used));
+ document.getElementById("login").classList.add("hidden");
+ document.getElementById("app").classList.remove("hidden");
+}
+
+function genQR(){
+ const payload="RK-"+Date.now()+"-"+Math.random();
+ document.getElementById("qr").src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data="+encodeURIComponent(payload);
+}
+setInterval(genQR,5000);genQR();
+
+setInterval(()=>{
+ const d=new Date();
+ document.getElementById("time").innerText=d.toLocaleTimeString();
+},1000);
+</script>
+</body>
+</html>
